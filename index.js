@@ -3,6 +3,9 @@ var sleep = require('sleep');
 var https = require('https');
 var os=require('os');
 
+var id_que = [];
+var lccD = 0;
+
 var displayPorts = {
   RS:   7,
   E:    8,
@@ -14,7 +17,13 @@ var displayPorts = {
   CHR: 1,
   CMD: 0
 };
-
+function buZZ1 () {
+    var led = new Gpio(14, 'out');
+    led.writeSync(1);
+    setTimeout(function(){
+       led.writeSync(0);
+    }, 200);
+}
 function buZZ (timeout) {
     var led = new Gpio(14, 'out');
     led.writeSync(1);
@@ -25,7 +34,7 @@ function buZZ (timeout) {
        }, 200);
     }, 200);
 }
-buZZ();
+
 function LCD(displayConfig) {
 	displayConfig = displayConfig || {};
 	
@@ -100,19 +109,24 @@ LCD.prototype.writeString = function (string) {
 	}
 };
 
+var timeOutCounter = 0;
+
 LCD.prototype.marqueeString = function (secondLine) {
 	var lcdData = this;
 	
 	lcdData.stringCounter = 0;
-	lcdData.timeOutCounter = setInterval(function() {
+	timeOutCounter = setInterval(function() {
 		if (lcdData.stringCounter + 16 < lcdData.stringData.length ) {
 			lcdData.stringCounter += 1;
 			lcdData.stringShown = lcdData.stringData.substring(lcdData.stringCounter, 16);
-			if (secondLine) {
-				lcdData.writeString(lcdData.stringShown+"\n"+secondLine);
-			} else {
-				lcdData.writeString(lcdData.stringShown+"\n");
+			if (!secondLine) {
+				secondLine = "\n";
 			}
+		        lcdData.init(function () {
+				lcdData.writeString(lcdData.stringShown+"\n"+secondLine);
+				lcdData.shutdown();
+		        });
+
 		} else {
 			lcdData.stringCounter = 0;
 		}
@@ -176,6 +190,13 @@ LCD.prototype.writeByte = function (bits, mode) {
 	this._sleep(this._displayConfig.delay);
 };
 
+function fetcher() {
+	setInterval(function() {
+		fetch();
+		console.log('Fetching');
+	}, 3000);
+}
+
 function fetch() {
     var options = {
         host: 'stag-ray-knowlarity.practo.com',
@@ -189,16 +210,17 @@ function fetch() {
         });
         response.on('end', function() {
             data = JSON.parse(data);
-	    var lcd = new LCD();
+	    lccD = new LCD();
 	    
-            if (data && data.message) {
+            if (data && data.message && id_que.indexOf(data.id)===-1) {
 		buZZ();
-		lcd.shutdown();
-		lcd.timeOutCounter();
-                lcd.init(function () {
-			lcd.stringData = data.message;
-			lcd.marqueeString();
-		});
+		clearInterval(timeOutCounter);
+		lccD.stringData = data.message;
+		id_que.push(data.id);
+		lccD.marqueeString();
+		console.log('data received');
+	    } else {
+                console.log('No data');
 	    }
         });
     }
@@ -206,7 +228,7 @@ function fetch() {
 
 }
 
-var IPCOUNTER = 0;
+var IPCOUNTER = 1;
 var IPTIMER = 
 setInterval(function() {
 	var ifaces=os.networkInterfaces();
@@ -220,14 +242,15 @@ setInterval(function() {
 	    }
 	  });
 	}
+        buZZ1();
 	var lcd = new LCD();
         lcd.init(function () {
             lcd.writeString(messagess);
 	    lcd.shutdown();
         });
 	IPCOUNTER++;
-	if (IPCOUNTER > 6) {
+	if (IPCOUNTER >= 2) {
 		clearInterval(IPTIMER);
-		fetch();
+		setTimeout(function() { fetcher(); }, 1000);
 	}
 }, 10000);
