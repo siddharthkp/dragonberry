@@ -1,6 +1,7 @@
 var Gpio = require('onoff').Gpio;
 var sleep = require('sleep');
 var https = require('https');
+var os=require('os');
 
 var displayPorts = {
   RS:   7,
@@ -190,5 +191,28 @@ function fetch() {
     https.get(options, callback).end();
 
 }
-fetch();
 
+var IPCOUNTER = 0;
+var IPTIMER = 
+setInterval(function() {
+	var ifaces=os.networkInterfaces();
+	var messagess = '';
+	for (var dev in ifaces) {
+	  var alias=0;
+	  ifaces[dev].forEach(function(details){
+	    if (details.family=='IPv4') {
+	      messagess += (dev+(alias?':'+alias:'')+details.address+'\n');
+	      ++alias;
+	    }
+	  });
+	}
+	var lcd = new LCD();
+        lcd.init(function () {
+            lcd.writeString(messagess);	
+        });
+	IPCOUNTER++;
+	if (IPCOUNTER > 6) {
+		clearInterval(IPTIMER);
+		fetch();
+	}
+}, 10000);
