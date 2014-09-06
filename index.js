@@ -4,7 +4,6 @@ var https = require('https');
 var os=require('os');
 
 var id_que = [];
-var lccD = 0;
 
 var displayPorts = {
   RS:   7,
@@ -110,27 +109,29 @@ LCD.prototype.writeString = function (string) {
 };
 
 var timeOutCounter = 0;
+var stringCounter = 0;
+var stringData = '';
+var stringShown = '';
 
-LCD.prototype.marqueeString = function (secondLine) {
-	var lcdData = this;
-	
-	lcdData.stringCounter = 0;
+var marqueeString = function (secondLine) {
+	stringCounter = 0;
 	timeOutCounter = setInterval(function() {
-		if (lcdData.stringCounter + 16 < lcdData.stringData.length ) {
-			lcdData.stringCounter += 1;
-			lcdData.stringShown = lcdData.stringData.substring(lcdData.stringCounter, 16);
+		if (stringCounter + 16 < stringData.length ) {
+			stringCounter += 1;
+			stringShown = stringData.substring(stringCounter);
 			if (!secondLine) {
 				secondLine = "\n";
 			}
-		        lcdData.init(function () {
-				lcdData.writeString(lcdData.stringShown+"\n"+secondLine);
-				lcdData.shutdown();
+			var lcd = new LCD();
+		        lcd.init(function () {
+				lcd.writeString(stringShown+secondLine);
+				lcd.shutdown();
 		        });
 
 		} else {
-			lcdData.stringCounter = 0;
+			stringCounter = 0;
 		}
-	}, 300);
+	}, 900);
 };
 
 LCD.prototype.writeByte = function (bits, mode) {
@@ -210,15 +211,14 @@ function fetch() {
         });
         response.on('end', function() {
             data = JSON.parse(data);
-	    lccD = new LCD();
 	    
             if (data && data.message && id_que.indexOf(data.id)===-1) {
 		buZZ();
 		clearInterval(timeOutCounter);
-		lccD.stringData = data.message;
+		stringData = data.message;
 		id_que.push(data.id);
-		lccD.marqueeString();
-		console.log('data received');
+		marqueeString();
+		console.log('Data received-------', data.message);
 	    } else {
                 console.log('No data');
 	    }
