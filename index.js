@@ -12,7 +12,7 @@ var displayPorts = {
   D5:   24,
   D6:   23,
   D7:   18,
-	
+
   CHR: 1,
   CMD: 0
 };
@@ -29,23 +29,23 @@ function buZZ (timeout) {
     setTimeout(function(){
        led.writeSync(0);
        setTimeout(function(){ led.writeSync(1)
-	   setTimeout(function(){led.writeSync(0)}, 400);	
+	   setTimeout(function(){led.writeSync(0)}, 400);
        }, 200);
     }, 200);
 }
 
 function LCD(displayConfig) {
 	displayConfig = displayConfig || {};
-	
+
 	this._displayConfig = {
 		width: displayConfig.width || 16,
 		line1: 0x80,
 		line2: 0xc0,
-		
+
 		pulse: displayConfig.pulse || 0.0001,
 		delay: displayConfig.delay || 0.0001
 	};
-	
+
 	this._ports = {
 		rs:	null,
 		e:	null,
@@ -74,7 +74,7 @@ LCD.prototype.init = function (callback) {
 	this._ports.d5 = new Gpio(displayPorts.D5, 'out');
 	this._ports.d6 = new Gpio(displayPorts.D6, 'out');
 	this._ports.d7 = new Gpio(displayPorts.D7, 'out');
-	
+
 	this._ports.rs = new Gpio(displayPorts.RS, 'out');
 	this._ports.e  = new Gpio(displayPorts.E,  'out');
 
@@ -96,13 +96,13 @@ LCD.prototype.shutdown = function () {
 LCD.prototype.writeString = function (string) {
 	var parts = string.split("\n");
 	var lines = [this._displayConfig.line1, this._displayConfig.line2];
-	
+
 	for (var key in parts) {
 		this.writeByte(lines[key], displayPorts.CMD);
-		
+
 		for (var i = 0; i != this._displayConfig.width; i++) {
 			var c = parts[key].charCodeAt(i) || 0x20;
-			
+
 			this.writeByte(c, displayPorts.CHR);
 		}
 	}
@@ -140,50 +140,50 @@ LCD.prototype.writeByte = function (bits, mode) {
 	this._ports.d5.writeSync(0);
 	this._ports.d6.writeSync(0);
 	this._ports.d7.writeSync(0);
-	
+
 	if ((bits & 0x10) == 0x10) {
 		this._ports.d4.writeSync(1);
 	}
-	
+
 	if ((bits & 0x20) == 0x20) {
 		this._ports.d5.writeSync(1);
 	}
-	
+
 	if ((bits & 0x40) == 0x40) {
 		this._ports.d6.writeSync(1);
 	}
-	
+
 	if ((bits & 0x80) == 0x80) {
 		this._ports.d7.writeSync(1);
 	}
-	
+
 	this._sleep(this._displayConfig.delay);
 	this._ports.e.writeSync(1);
 	this._sleep(this._displayConfig.pulse);
 	this._ports.e.writeSync(0);
 	this._sleep(this._displayConfig.delay);
-	
+
 	this._ports.d4.writeSync(0);
 	this._ports.d5.writeSync(0);
 	this._ports.d6.writeSync(0);
 	this._ports.d7.writeSync(0);
-	
+
 	if ((bits & 0x1) == 0x1) {
 		this._ports.d4.writeSync(1);
 	}
-	
+
 	if ((bits & 0x2) == 0x2) {
 		this._ports.d5.writeSync(1);
 	}
-	
+
 	if ((bits & 0x4) == 0x4) {
 		this._ports.d6.writeSync(1);
 	}
-	
+
 	if ((bits & 0x8) == 0x8) {
 		this._ports.d7.writeSync(1);
 	}
-	
+
 	this._sleep(this._displayConfig.delay);
 	this._ports.e.writeSync(1);
 	this._sleep(this._displayConfig.pulse);
@@ -202,7 +202,7 @@ function fetch() {
     var options = {
         host: 'stag-ray-knowlarity.practo.com',
         path: '/api/v1/notification',
-	headers: { "X-AUTH-TOKEN": "fd4645ae98eaacf502a70ebe002c40fcbf825909"}
+	headers: { "X-AUTH-TOKEN": "560d893ee3c77701d56e7b81c17dc357d25b3ca1"}
     };
     var callback = function(response) {
         var data = '';
@@ -211,7 +211,7 @@ function fetch() {
         });
         response.on('end', function() {
             data = JSON.parse(data);
-	    
+
             if (data && data.message && id_que.indexOf(data.id)===-1) {
 		buZZ();
 		clearInterval(timeOutCounter);
@@ -234,7 +234,7 @@ function fetch() {
 }
 
 var IPCOUNTER = 1;
-var IPTIMER = 
+var IPTIMER =
 setInterval(function() {
 	var ifaces=os.networkInterfaces();
 	var messagess = '';
