@@ -18,9 +18,14 @@ var displayPorts = {
 function buZZ (timeout) {
     var led = new Gpio(14, 'out');
     led.writeSync(1);
-    setTimeout(function(){ led.writeSync(0); }, timeout || 500);
+    setTimeout(function(){
+       led.writeSync(0);
+       setTimeout(function(){ led.writeSync(1)
+	   setTimeout(function(){led.writeSync(0)}, 400);	
+       }, 200);
+    }, 200);
 }
-
+buZZ();
 function LCD(displayConfig) {
 	displayConfig = displayConfig || {};
 	
@@ -187,7 +192,9 @@ function fetch() {
 	    var lcd = new LCD();
 	    
             if (data && data.message) {
+		buZZ();
 		lcd.shutdown();
+		lcd.timeOutCounter();
                 lcd.init(function () {
 			lcd.stringData = data.message;
 			lcd.marqueeString();
@@ -224,4 +231,3 @@ setInterval(function() {
 		fetch();
 	}
 }, 10000);
-buZZ();
