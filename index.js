@@ -208,7 +208,8 @@ setInterval(function() {
 	}
 	var lcd = new LCD();
         lcd.init(function () {
-            lcd.writeString(messagess);	
+            lcd.writeString(messagess);
+	    lcd.shutdown();
         });
 	IPCOUNTER++;
 	if (IPCOUNTER > 6) {
