@@ -217,7 +217,12 @@ function fetch() {
 		clearInterval(timeOutCounter);
 		stringData = data.message;
 		id_que.push(data.id);
-		marqueeString();
+		//marqueeString();
+		var lcd = new LCD();
+	        lcd.init(function () {
+			lcd.writeString(data.patient.name+': '+data.scheduled_at.split(' ')[1]);
+			lcd.shutdown();
+	        });
 		console.log('Data received-------', data.message);
 	    } else {
                 console.log('No data');
